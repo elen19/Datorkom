@@ -88,7 +88,6 @@ int main(int argc, char *argv[]){
     close(sockfd);
     exit(0);
   }
-  printf("%d\n", bytes);
   printf("%s", buf);
   if(strstr(buf,PROTOCOL) == NULL)
   {
@@ -98,6 +97,14 @@ int main(int argc, char *argv[]){
   }
 
   printf("Accepted protocol\n");
+  
+  if(send(sockfd, "OK\n", strlen("OK\n"),0)==-1)
+  {
+    printf ("Error: Failed to send message \n");
+    close(sockfd);
+    exit(0);
+  }
+  
 
 #ifdef DEBUG 
   printf("Host %s, and port %d.\n",Desthost,port);
