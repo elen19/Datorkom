@@ -99,7 +99,7 @@ int main(int argc, char *argv[]){
 
   printf("Accepted protocol\n");
   char msg[] ="OK\n";
-  if(send(sockfd, msg, sizeof(msg),0)==-1)
+  if(send(sockfd, msg, strlen(msg),0)==-1)
   {
     printf ("Error: Failed to send message \n");
     close(sockfd);
@@ -115,24 +115,83 @@ int main(int argc, char *argv[]){
     exit(0);
   }
   printf("%s\n", buf);
-
+ char oppr[10];
   if(buf[0]=='f')
   {
     double val1 = 0;
     double val2 = 0;
-    char test[10];
-    sscanf(buf,"%s %lf %lf",test, &val1, &val2);
-    printf("%lf kekers2 %lf", val1, val2);  
+    double total = 0;
+   
+    sscanf(buf,"%s %lf %lf",oppr, &val1, &val2);
+
+    if(strstr(oppr,"fadd"))
+    {
+      total = val1 + val2;
+    }
+    else if(strstr(oppr,"fdiv"))
+    {
+      total = val1 / val2;
+    }
+    else if(strstr(oppr, "fmul"))
+    {
+      total = val1 * val2;
+    }
+    else if(strstr(oppr,"fsub"))
+    {
+      total = val1 - val2;
+    }
+    char answ[3];
+    sprintf(answ,"%lf\n", total);
+    if(send(sockfd, answ, strlen(answ),0)==-1)
+    {
+      printf ("Error: Failed to send message \n");
+      close(sockfd);
+      exit(0);
+    }
+    printf("%lf\n",total);
   }
   else
   {
     int val1 = 0;
     int val2 = 0;
-    char test[10];
-    sscanf(buf,"%s %d %d",test, &val1, &val2);
-    printf("%d kekers %d",val1, val2);
+    int total = 0;
+    sscanf(buf,"%s %d %d",oppr, &val1, &val2);
+    
+    if(strstr(oppr,"add"))
+    {
+      total = val1 + val2;
+    }
+    else if(strstr(oppr,"div"))
+    {
+      total = val1 / val2;
+    }
+    else if(strstr(oppr, "mul"))
+    {
+      total = val1 * val2;
+    }
+    else if(strstr(oppr,"sub"))
+    {
+      total = val1 - val2;
+    }
+    char answ[3];
+    sprintf(answ,"%d\n", total);
+    if(send(sockfd, answ, strlen(answ),0)==-1)
+    {
+      printf ("Error: Failed to send message \n");
+      close(sockfd);
+      exit(0);
+    }
+    printf("%d \n",total);
   }
-
+  memset(buf,0,128);
+  bytes = recv(sockfd,buf,sizeof(buf), 0);
+  if(bytes == -1 )
+  {
+    printf("Error, couldn't recive message. Exiting program...\n");
+    close(sockfd);
+    exit(0);
+  }
+  printf("%s\n", buf);
 
 #ifdef DEBUG 
   printf("Host %s, and port %d.\n",Desthost,port);
