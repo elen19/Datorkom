@@ -12,58 +12,58 @@
 /* You will to add includes here */
 
 // Enable if you want debugging to be printed, see examble below.
-// Alternative, pass 
+// Alternative, pass
 #define DEBUG
 #define PROTOCOL "TEXT TCP 1.0\n"
 
 // Included to get the support library
 #include "calcLib.h"
 
-int main(int argc, char *argv[]){
+int main(int argc, char *argv[])
+{
 
-  
   /*
     Read first input, assumes <ip>:<port> syntax, convert into one string (Desthost) and one integer (port). 
      Atm, works only on dotted notation, i.e. IPv4 and DNS. IPv6 does not work if its using ':'. 
   */
-  if(argc != 2)
+  if (argc != 2)
   {
     printf("Wrong format IP:PORT\n");
     exit(0);
   }
-  
-  char delim[]=":";
-  char *Desthost=strtok(argv[1],delim);
-  char *Destport=strtok(NULL,delim);
 
-  if(Desthost == NULL || Destport==NULL)
+  char delim[] = ":";
+  char *Desthost = strtok(argv[1], delim);
+  char *Destport = strtok(NULL, delim);
+
+  if (Desthost == NULL || Destport == NULL)
   {
     printf("Wrong format\n");
     exit(0);
   }
   // *Desthost now points to a sting holding whatever came before the delimiter, ':'.
-  // *Dstport points to whatever string came after the delimiter. 
+  // *Dstport points to whatever string came after the delimiter.
 
   /* Do magic */
-  int port=atoi(Destport);
+  int port = atoi(Destport);
   addrinfo sa, *si, *p;
   sa.ai_family = AF_INET;
   sa.ai_socktype = SOCK_STREAM;
-  if(int rv = getaddrinfo(Desthost, Destport, &sa, &si)!= 0)
+  if (int rv = getaddrinfo(Desthost, Destport, &sa, &si) != 0)
   {
-    fprintf(stderr,"%s\n", gai_strerror(rv));
+    fprintf(stderr, "%s\n", gai_strerror(rv));
     exit(0);
   }
-  
+
   int sockfd;
-  for(p = si; p != NULL; p = p->ai_next)
+  for (p = si; p != NULL; p = p->ai_next)
   {
-    if((sockfd = socket(p->ai_family, p->ai_socktype, p->ai_protocol)) == -1)
+    if ((sockfd = socket(p->ai_family, p->ai_socktype, p->ai_protocol)) == -1)
     {
       continue;
     }
 
-    if((connect(sockfd, p->ai_addr, p->ai_addrlen)) == -1)
+    if ((connect(sockfd, p->ai_addr, p->ai_addrlen)) == -1)
     {
       close(sockfd);
       printf("Couldn't connect to server.\n");
@@ -71,8 +71,8 @@ int main(int argc, char *argv[]){
     }
     break;
   }
-  
-  if(p == NULL)
+
+  if (p == NULL)
   {
     printf("Couldn't create socket2\n");
     exit(0);
@@ -81,16 +81,16 @@ int main(int argc, char *argv[]){
   freeaddrinfo(si);
 
   char buf[128];
-  int bytes = recv(sockfd,buf,sizeof(buf), 0);
+  int bytes = recv(sockfd, buf, sizeof(buf), 0);
 
-  if(bytes == -1 )
+  if (bytes == -1)
   {
     printf("Error, couldn't recive message. Exiting program...\n");
     close(sockfd);
     exit(0);
   }
   printf("%s\n", buf);
-  if(strstr(buf,PROTOCOL) == NULL)
+  if (strstr(buf, PROTOCOL) == NULL)
   {
     printf("Wrong protocol\n");
     close(sockfd);
@@ -98,94 +98,94 @@ int main(int argc, char *argv[]){
   }
 
   printf("Accepted protocol\n");
-  char msg[] ="OK\n";
-  if(send(sockfd, msg, strlen(msg),0)==-1)
+  char msg[] = "OK\n";
+  if (send(sockfd, msg, strlen(msg), 0) == -1)
   {
-    printf ("Error: Failed to send message \n");
+    printf("Error: Failed to send message \n");
     close(sockfd);
     exit(0);
   }
-  memset(buf,0,128);
-  bytes = recv(sockfd,buf,sizeof(buf), 0);
+  memset(buf, 0, 128);
+  bytes = recv(sockfd, buf, sizeof(buf), 0);
 
-  if(bytes == -1 )
+  if (bytes == -1)
   {
     printf("Error, couldn't recive message. Exiting program...\n");
     close(sockfd);
     exit(0);
   }
   printf("%s\n", buf);
- char oppr[10];
-  if(buf[0]=='f')
+  char oppr[10];
+  if (buf[0] == 'f')
   {
     double val1 = 0;
     double val2 = 0;
     double total = 0;
-   
-    sscanf(buf,"%s %lf %lf",oppr, &val1, &val2);
 
-    if(strstr(oppr,"fadd"))
+    sscanf(buf, "%s %lf %lf", oppr, &val1, &val2);
+
+    if (strstr(oppr, "fadd"))
     {
       total = val1 + val2;
     }
-    else if(strstr(oppr,"fdiv"))
+    else if (strstr(oppr, "fdiv"))
     {
       total = val1 / val2;
     }
-    else if(strstr(oppr, "fmul"))
+    else if (strstr(oppr, "fmul"))
     {
       total = val1 * val2;
     }
-    else if(strstr(oppr,"fsub"))
+    else if (strstr(oppr, "fsub"))
     {
       total = val1 - val2;
     }
     char answ[3];
-    sprintf(answ,"%lf\n", total);
-    if(send(sockfd, answ, strlen(answ),0)==-1)
+    sprintf(answ, "%lf\n", total);
+    if (send(sockfd, answ, strlen(answ), 0) == -1)
     {
-      printf ("Error: Failed to send message \n");
+      printf("Error: Failed to send message \n");
       close(sockfd);
       exit(0);
     }
-    printf("%lf\n",total);
+    printf("%lf\n", total);
   }
   else
   {
     int val1 = 0;
     int val2 = 0;
     int total = 0;
-    sscanf(buf,"%s %d %d",oppr, &val1, &val2);
-    
-    if(strstr(oppr,"add"))
+    sscanf(buf, "%s %d %d", oppr, &val1, &val2);
+
+    if (strstr(oppr, "add"))
     {
       total = val1 + val2;
     }
-    else if(strstr(oppr,"div"))
+    else if (strstr(oppr, "div"))
     {
       total = val1 / val2;
     }
-    else if(strstr(oppr, "mul"))
+    else if (strstr(oppr, "mul"))
     {
       total = val1 * val2;
     }
-    else if(strstr(oppr,"sub"))
+    else if (strstr(oppr, "sub"))
     {
       total = val1 - val2;
     }
     char answ[3];
-    sprintf(answ,"%d\n", total);
-    if(send(sockfd, answ, strlen(answ),0)==-1)
+    sprintf(answ, "%d\n", total);
+    if (send(sockfd, answ, strlen(answ), 0) == -1)
     {
-      printf ("Error: Failed to send message \n");
+      printf("Error: Failed to send message \n");
       close(sockfd);
       exit(0);
     }
-    printf("%d \n",total);
+    printf("%d \n", total);
   }
-  memset(buf,0,128);
-  bytes = recv(sockfd,buf,sizeof(buf), 0);
-  if(bytes == -1 )
+  memset(buf, 0, 128);
+  bytes = recv(sockfd, buf, sizeof(buf), 0);
+  if (bytes == -1)
   {
     printf("Error, couldn't recive message. Exiting program...\n");
     close(sockfd);
@@ -193,10 +193,9 @@ int main(int argc, char *argv[]){
   }
   printf("%s\n", buf);
 
-#ifdef DEBUG 
-  printf("Host %s, and port %d.\n",Desthost,port);
+#ifdef DEBUG
+  printf("Host %s, and port %d.\n", Desthost, port);
 #endif
   close(sockfd);
   return 0;
-  
 }
