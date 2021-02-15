@@ -8,6 +8,7 @@
 #include <unistd.h>
 #include <errno.h>
 #include <netdb.h>
+
 /* You will to add includes here */
 
 // Enable if you want debugging to be printed, see examble below.
@@ -44,11 +45,11 @@ int main(int argc, char *argv[]){
   // *Dstport points to whatever string came after the delimiter. 
 
   /* Do magic */
+  int port=atoi(Destport);
   addrinfo sa, *si, *p;
   sa.ai_family = AF_INET;
   sa.ai_socktype = SOCK_STREAM;
-  int port=atoi(Destport);
-  if(int rv = getaddrinfo(Desthost, Destport, &sa, &si)!=0)
+  if(int rv = getaddrinfo(Desthost, Destport, &sa, &si)!= 0)
   {
     fprintf(stderr,"%s\n", gai_strerror(rv));
     exit(0);
@@ -64,8 +65,8 @@ int main(int argc, char *argv[]){
 
     if((connect(sockfd, p->ai_addr, p->ai_addrlen)) == -1)
     {
-      printf("Couldn't create socket\n");
       close(sockfd);
+      printf("Couldn't connect to server.\n");
       exit(0);
     }
     break;
@@ -88,7 +89,7 @@ int main(int argc, char *argv[]){
     close(sockfd);
     exit(0);
   }
-  printf("%s", buf);
+  printf("%s\n", buf);
   if(strstr(buf,PROTOCOL) == NULL)
   {
     printf("Wrong protocol\n");
@@ -97,14 +98,41 @@ int main(int argc, char *argv[]){
   }
 
   printf("Accepted protocol\n");
-  
-  if(send(sockfd, "OK\n", strlen("OK\n"),0)==-1)
+  char msg[] ="OK\n";
+  if(send(sockfd, msg, sizeof(msg),0)==-1)
   {
     printf ("Error: Failed to send message \n");
     close(sockfd);
     exit(0);
   }
-  
+  memset(buf,0,128);
+  bytes = recv(sockfd,buf,sizeof(buf), 0);
+
+  if(bytes == -1 )
+  {
+    printf("Error, couldn't recive message. Exiting program...\n");
+    close(sockfd);
+    exit(0);
+  }
+  printf("%s\n", buf);
+
+  if(buf[0]=='f')
+  {
+    double val1 = 0;
+    double val2 = 0;
+    char test[10];
+    sscanf(buf,"%s %lf %lf",test, &val1, &val2);
+    printf("%lf kekers2 %lf", val1, val2);  
+  }
+  else
+  {
+    int val1 = 0;
+    int val2 = 0;
+    char test[10];
+    sscanf(buf,"%s %d %d",test, &val1, &val2);
+    printf("%d kekers %d",val1, val2);
+  }
+
 
 #ifdef DEBUG 
   printf("Host %s, and port %d.\n",Desthost,port);
