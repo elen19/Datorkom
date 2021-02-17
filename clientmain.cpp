@@ -47,6 +47,7 @@ int main(int argc, char *argv[])
   /* Do magic */
   int port = atoi(Destport);
   addrinfo sa, *si, *p;
+  memset(&sa, 0, sizeof(sa));
   sa.ai_family = AF_INET;
   sa.ai_socktype = SOCK_STREAM;
   if (int rv = getaddrinfo(Desthost, Destport, &sa, &si) != 0)
@@ -62,19 +63,17 @@ int main(int argc, char *argv[])
     {
       continue;
     }
-
-    if ((connect(sockfd, p->ai_addr, p->ai_addrlen)) == -1)
+    if ((connect(sockfd, p->ai_addr, p->ai_addrlen)) != 0)
     {
       close(sockfd);
       printf("Couldn't connect to server.\n");
-      exit(0);
+      continue;
     }
     break;
   }
-
   if (p == NULL)
   {
-    printf("Couldn't create socket2\n");
+    printf("Couldn't create connect.\n");
     exit(0);
   }
 
@@ -89,7 +88,7 @@ int main(int argc, char *argv[])
     close(sockfd);
     exit(0);
   }
-  printf("%s\n", buf);
+  printf("%s", buf);
   if (strstr(buf, PROTOCOL) == NULL)
   {
     printf("Wrong protocol\n");
@@ -114,7 +113,7 @@ int main(int argc, char *argv[])
     close(sockfd);
     exit(0);
   }
-  printf("%s\n", buf);
+  printf("%s", buf);
   char oppr[10];
   if (buf[0] == 'f')
   {
@@ -140,7 +139,7 @@ int main(int argc, char *argv[])
     {
       total = val1 - val2;
     }
-    char answ[3];
+    char answ[12];
     sprintf(answ, "%lf\n", total);
     if (send(sockfd, answ, strlen(answ), 0) == -1)
     {
@@ -191,7 +190,7 @@ int main(int argc, char *argv[])
     close(sockfd);
     exit(0);
   }
-  printf("%s\n", buf);
+  printf("%s", buf);
 
 #ifdef DEBUG
   printf("Host %s, and port %d.\n", Desthost, port);
