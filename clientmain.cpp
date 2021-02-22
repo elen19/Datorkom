@@ -14,6 +14,7 @@
 // Enable if you want debugging to be printed, see examble below.
 // Alternative, pass
 #define DEBUG
+#define ERROR "ERROR TO\n"
 #define PROTOCOL "TEXT TCP 1.0\n"
 
 // Included to get the support library
@@ -82,7 +83,7 @@ int main(int argc, char *argv[])
   char buf[128];
   int bytes = recv(sockfd, buf, sizeof(buf), 0);
 
-  if (bytes == -1)
+  if (bytes == -1 || strcmp(buf, ERROR) == 0)
   {
     printf("Error, couldn't recive message. Exiting program...\n");
     close(sockfd);
@@ -107,7 +108,7 @@ int main(int argc, char *argv[])
   memset(buf, 0, 128);
   bytes = recv(sockfd, buf, sizeof(buf), 0);
 
-  if (bytes == -1)
+  if (bytes == -1 || strcmp(buf, ERROR) == 0)
   {
     printf("Error, couldn't recive message. Exiting program...\n");
     close(sockfd);
@@ -184,7 +185,7 @@ int main(int argc, char *argv[])
   }
   memset(buf, 0, 128);
   bytes = recv(sockfd, buf, sizeof(buf), 0);
-  if (bytes == -1)
+  if (bytes == -1 || strcmp(buf, ERROR) == 0)
   {
     printf("Error, couldn't recive message. Exiting program...\n");
     close(sockfd);

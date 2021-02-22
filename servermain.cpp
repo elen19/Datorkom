@@ -37,48 +37,75 @@ int main(int argc, char *argv[])
   /* Do magic */
   int port = atoi(Destport);
   int sockfd, len, connfd;
-  struct sockaddr_in serveraddr, client;
+  struct sockaddr_in client;
 
-  if ((sockfd = socket(AF_INET, SOCK_STREAM, 0)) == -1)
+  addrinfo sa, *si, *p;
+  memset(&sa, 0, sizeof(sa));
+  sa.ai_family = AF_UNSPEC;
+  sa.ai_socktype = SOCK_STREAM;
+  if (int rv = getaddrinfo(Desthost, Destport, &sa, &si) != 0)
   {
-    printf("Failed to create socket.\n");
-    close(sockfd);
+    fprintf(stderr, "%s\n", gai_strerror(rv));
     exit(0);
   }
-  bzero(&serveraddr, sizeof(serveraddr));
 
-  serveraddr.sin_family = AF_INET;
-  serveraddr.sin_addr.s_addr = htonl(INADDR_ANY);
-  serveraddr.sin_port = htons(port);
-  printf("LOL\n");
-  if ((bind(sockfd, (struct sockaddr *)&serveraddr, sizeof(serveraddr))) != 0)
+  for (p = si; p != NULL; p = p->ai_next)
   {
-    printf("Failed to bind.\n");
-    close(sockfd);
+    if ((sockfd = socket(p->ai_family, p->ai_socktype, p->ai_protocol)) == -1)
+    {
+      continue;
+    }
+    if ((bind(sockfd, p->ai_addr, p->ai_addrlen)) != 0)
+    {
+      printf("Failed to bind.\n");
+      close(sockfd);
+      continue;
+    }
+    break;
+  }
+  if (p == NULL)
+  {
+    printf("Couldn't create/bind socket.\n");
     exit(0);
   }
-  printf("POG\n");
+
+  freeaddrinfo(si);
 
   if (listen(sockfd, 5) != 0)
   {
     printf("Failed to listen.\n");
-    close(sockfd);
     exit(0);
   }
-printf("lyssnar :eyes: \n");
+  print("Listening...\n");
   len = sizeof(client);
 
-  if ((connfd = accept(sockfd, (struct sockaddr *)&client, (socklen_t *)len)) == -1)
+  char buffer[128];
+  bool clientIsActive = false;
+  while (true)
   {
-    printf("Server failed to accpet.\n");
-    close(sockfd);
-    close(connfd);
-    exit(0);
+    if (clientIsActive == false)
+    {
+      if ((connfd = accept(sockfd, (struct sockaddr *)&client, (socklen_t *)&len)) == -1)
+      {
+        printf("Server failed to accpet.\n");
+        exit(0);
+      }
+      else
+      {
+        clientIsActive = true;
+        char buf[strlen(PROTOCOL)] = PROTOCOL;
+        send(connfd, buf, strlen(buf), 0);
+      }
+    }
+    memset(buffer, 0, sizeof(buffer));
+    if (recv(connfd, buffer, sizeof(buffer), 0) == -1)
+    {
+      printf("Recive timed out. Sending error to client.\n");
+      send(connfd, "ERROR TO\n", strlen("ERROR TO\n"), 0);
+      close(connfd);
+    }
+    send(connfd, buf, strlen(buf), 0);
   }
-
-  char buf[128] = PROTOCOL;
-
-  close(connfd);
   close(sockfd);
   return 0;
 
