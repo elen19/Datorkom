@@ -28,9 +28,19 @@ int main(int argc, char *argv[])
     Read first input, assumes <ip>:<port> syntax, convert into one string (Desthost) and one integer (port). 
      Atm, works only on dotted notation, i.e. IPv4 and DNS. IPv6 does not work if its using ':'. 
   */
+ if (argc != 2)
+  {
+    printf("Wrong format IP:PORT\n");
+    exit(0);
+  }
   char delim[] = ":";
   char *Desthost = strtok(argv[1], delim);
   char *Destport = strtok(NULL, delim);
+  if (Desthost == NULL || Destport == NULL)
+  {
+    printf("Wrong format\n");
+    exit(0);
+  }
   // *Desthost now points to a sting holding whatever came before the delimiter, ':'.
   // *Dstport points to whatever string came after the delimiter.
 
@@ -43,6 +53,9 @@ int main(int argc, char *argv[])
   memset(&sa, 0, sizeof(sa));
   sa.ai_family = AF_UNSPEC;
   sa.ai_socktype = SOCK_STREAM;
+  struct timeval tv;
+  tv.tv_sec = 5;
+  tv.tv_usec = 0;
   if (int rv = getaddrinfo(Desthost, Destport, &sa, &si) != 0)
   {
     fprintf(stderr, "%s\n", gai_strerror(rv));
@@ -68,7 +81,7 @@ int main(int argc, char *argv[])
     printf("Couldn't create/bind socket.\n");
     exit(0);
   }
-
+  setsockopt(sockfd, SOL_SOCKET, SO_RCVTIMEO, (const char *)&tv, sizeof(tv));
   freeaddrinfo(si);
 
   if (listen(sockfd, 5) != 0)
@@ -97,7 +110,7 @@ int main(int argc, char *argv[])
       if ((connfd = accept(sockfd, (struct sockaddr *)&client, (socklen_t *)&len)) == -1)
       {
         printf("Server failed to accpet.\n");
-        exit(0);
+        continue;
       }
       else
       {
@@ -169,11 +182,13 @@ int main(int argc, char *argv[])
       sscanf(recvBuf, "%lf", &clientAnswFl);
       if (abs(clientAnswFl - flAnsw) < 0.0001f)
       {
-        sprintf(sendBuf,"%s","OK\n");
+        sprintf(sendBuf, "%s", "OK\n");
+        clientIsActive = false;
       }
       else
       {
-        sprintf(sendBuf,"%s","ERROR\n");
+        sprintf(sendBuf, "%s", "ERROR\n");
+        clientIsActive = false;
       }
     }
     else if (arith[0] != 'f')
@@ -181,16 +196,18 @@ int main(int argc, char *argv[])
       sscanf(recvBuf, "%d", &clientAnswInt);
       if (clientAnswInt == inAnsw)
       {
-        sprintf(sendBuf,"%s","OK\n");
+        sprintf(sendBuf, "%s", "OK\n");
+        clientIsActive = false;
       }
       else
       {
-        sprintf(sendBuf,"%s","ERROR\n");
+        sprintf(sendBuf, "%s", "ERROR\n");
+        clientIsActive = false;
       }
     }
     else
     {
-      sprintf(sendBuf,"%s","ERROR TO\n");
+      sprintf(sendBuf, "%s", "ERROR TO\n");
       clientIsActive = false;
     }
     if (send(connfd, sendBuf, strlen(sendBuf), 0) == -1)
