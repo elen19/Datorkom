@@ -86,23 +86,19 @@ int main(int argc, char *argv[])
   if (bytes == -1 || strstr(buf, ERROR) != nullptr)
   {
     printf("Error, couldn't recive message. Exiting program...\n");
-    close(sockfd);
     exit(0);
   }
   printf("%s", buf);
   if (strstr(buf, PROTOCOL) == NULL)
   {
     printf("Wrong protocol\n");
-    close(sockfd);
     exit(0);
   }
-
   printf("Accepted protocol\n");
   char msg[] = "OK\n";
   if (send(sockfd, msg, strlen(msg), 0) == -1)
   {
     printf("Error: Failed to send message \n");
-    close(sockfd);
     exit(0);
   }
   memset(buf, 0, 128);
@@ -111,7 +107,6 @@ int main(int argc, char *argv[])
   if (bytes == -1 || strstr(buf, ERROR) != nullptr)
   {
     printf("Error, couldn't recive message. Exiting program...\n");
-    close(sockfd);
     exit(0);
   }
   printf("%s", buf);
@@ -145,7 +140,6 @@ int main(int argc, char *argv[])
     if (send(sockfd, answ, strlen(answ), 0) == -1)
     {
       printf("Error: Failed to send message \n");
-      close(sockfd);
       exit(0);
     }
     printf("%lf\n", total);
@@ -178,7 +172,6 @@ int main(int argc, char *argv[])
     if (send(sockfd, answ, strlen(answ), 0) == -1)
     {
       printf("Error: Failed to send message \n");
-      close(sockfd);
       exit(0);
     }
     printf("%d \n", total);
@@ -188,7 +181,6 @@ int main(int argc, char *argv[])
   if (bytes == -1 || strstr(buf, ERROR) != nullptr)
   {
     printf("Error, couldn't recive message. Exiting program...\n");
-    close(sockfd);
     exit(0);
   }
   printf("%s", buf);

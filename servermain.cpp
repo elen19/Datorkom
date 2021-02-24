@@ -28,7 +28,7 @@ int main(int argc, char *argv[])
     Read first input, assumes <ip>:<port> syntax, convert into one string (Desthost) and one integer (port). 
      Atm, works only on dotted notation, i.e. IPv4 and DNS. IPv6 does not work if its using ':'. 
   */
- if (argc != 2)
+  if (argc != 2)
   {
     printf("Wrong format IP:PORT\n");
     exit(0);
@@ -109,7 +109,7 @@ int main(int argc, char *argv[])
     {
       if ((connfd = accept(sockfd, (struct sockaddr *)&client, (socklen_t *)&len)) == -1)
       {
-        printf("Server failed to accpet.\n");
+        printf("Nothing to accpet. Still waiting for client...\n");
         continue;
       }
       else
@@ -124,9 +124,18 @@ int main(int argc, char *argv[])
     memset(sendBuf, 0, sizeof(sendBuf));
     if (recv(connfd, recvBuf, sizeof(recvBuf), 0) == -1)
     {
-      printf("Recive timed out. Sending error to client.\n");
-      send(connfd, "ERROR TO\n", strlen("ERROR TO\n"), 0);
+      if (errno == EAGAIN)
+      {
+        printf("Recive timed out. Sending error to client.\n");
+        send(connfd, "ERROR TO\n", strlen("ERROR TO\n"), 0);
+      }
+      else
+      {
+        printf("Something went wrong with recive.\n");
+      }
       close(connfd);
+      clientIsActive = false;
+      continue;
     }
     if (strcmp(recvBuf, "OK\n") == 0)
     {
@@ -150,7 +159,7 @@ int main(int argc, char *argv[])
         {
           flAnsw = fl1 * fl2;
         }
-        printf("%lf %lf %lf\n", fl1, fl2, flAnsw);
+        //printf("%lf %lf %lf\n", fl1, fl2, flAnsw);
         sprintf(sendBuf, "%s %lf %lf\n", arith, fl1, fl2);
       }
       else
@@ -173,7 +182,7 @@ int main(int argc, char *argv[])
         {
           inAnsw = in1 * in2;
         }
-        printf("%d %d %d\n", in1, in2, inAnsw);
+        //printf("%d %d %d\n", in1, in2, inAnsw);
         sprintf(sendBuf, "%s %d %d\n", arith, in1, in2);
       }
     }
@@ -182,11 +191,13 @@ int main(int argc, char *argv[])
       sscanf(recvBuf, "%lf", &clientAnswFl);
       if (abs(clientAnswFl - flAnsw) < 0.0001f)
       {
+        printf("Client handled, answears matched.\n");
         sprintf(sendBuf, "%s", "OK\n");
         clientIsActive = false;
       }
       else
       {
+        printf("Client handled, answears did not matched.\n");
         sprintf(sendBuf, "%s", "ERROR\n");
         clientIsActive = false;
       }
@@ -196,11 +207,13 @@ int main(int argc, char *argv[])
       sscanf(recvBuf, "%d", &clientAnswInt);
       if (clientAnswInt == inAnsw)
       {
+        printf("Client handled, answears matched.\n");
         sprintf(sendBuf, "%s", "OK\n");
         clientIsActive = false;
       }
       else
       {
+        printf("Client handled, answears did not matched.\n");
         sprintf(sendBuf, "%s", "ERROR\n");
         clientIsActive = false;
       }
