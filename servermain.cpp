@@ -109,7 +109,7 @@ int main(int argc, char *argv[])
     {
       if ((connfd = accept(sockfd, (struct sockaddr *)&client, (socklen_t *)&len)) == -1)
       {
-        printf("Nothing to accpet. Still waiting for client...\n");
+        printf("Nothing to accept. Still waiting for client...\n");
         continue;
       }
       else
